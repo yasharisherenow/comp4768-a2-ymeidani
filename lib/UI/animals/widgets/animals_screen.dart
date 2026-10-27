@@ -81,6 +81,7 @@ class AnimalsScreen extends ConsumerWidget {
                   itemBuilder: (context, index) {
                     final animal = filteredAnimals[index];
                     return ListTile(
+                      onTap: () => context.go('/animals/${animal.id}'),
                       leading: Icon(switch (animal.species) {
                         Species.cat => Icons.pets,
                         Species.dog => Icons.pets,
