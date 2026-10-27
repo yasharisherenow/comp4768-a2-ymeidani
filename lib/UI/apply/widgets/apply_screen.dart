@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-
+import 'package:go_router/go_router.dart';
 import '../../../domain/models/animal.dart';
 import '../../animal/view_models/animal_view_model.dart';
 import '../../animals/view_models/animals_view_model.dart';
@@ -21,6 +21,7 @@ class _ApplyScreenState extends ConsumerState<ApplyScreen> {
   final _phoneController = TextEditingController();
   final _reasonController = TextEditingController();
   final _ageController = TextEditingController();
+  String? _visitTime;
 
   @override
   void dispose() {
@@ -28,6 +29,7 @@ class _ApplyScreenState extends ConsumerState<ApplyScreen> {
     _phoneController.dispose();
     _reasonController.dispose();
     _ageController.dispose();
+    _visitTime = null;
     super.dispose();
   }
 
@@ -95,7 +97,15 @@ class _ApplyScreenState extends ConsumerState<ApplyScreen> {
                       validator: validateReason,
                     ),
                   const SizedBox(height: 24),
-                  // Temporary validation checkpoint before submission is added.
+                  ElevatedButton(
+                     onPressed: () async {
+                       final time = await context.push<String>('/visit-times');
+                       if (!mounted || time == null) return;
+                         setState(() { _visitTime = time; }); },
+  child: const Text('Choose a visit time'),
+),
+if (_visitTime != null) Text(_visitTime!),
+const SizedBox(height: 16),
                   ElevatedButton(
                     onPressed: () => _formKey.currentState!.validate(),
                     child: const Text('Check details'),
