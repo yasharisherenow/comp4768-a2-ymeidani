@@ -1,16 +1,25 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:flutter_web_plugins/url_strategy.dart';
+import 'routing/router.dart';
 
 void main() {
-  runApp(const MainApp());
-}
-
-class MainApp extends StatelessWidget {
-  const MainApp({super.key});
+  usePathUrlStrategy();
+  runApp(
+    ProviderScope(
+      retry: (retryCount, error) => null,
+      child: const AdoptFosterApp(),
+    ),
+  );
+}   
+class AdoptFosterApp extends StatelessWidget {
+  const AdoptFosterApp({super.key});
 
   @override
   Widget build(BuildContext context) {
-    return const MaterialApp(
-      home: Scaffold(body: Center(child: Text('Hello World!'))),
+    return MaterialApp.router(
+      title: 'Adopt & Foster',
+      routerConfig: router,
     );
   }
 }
