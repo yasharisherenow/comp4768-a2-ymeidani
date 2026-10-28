@@ -27,6 +27,34 @@ class ApplicationsScreen extends ConsumerWidget {
             itemBuilder: (context, index) {
               final application = applications[index];
               return ListTile(
+                trailing: TextButton(
+                  onPressed: () async {
+                    final confirmed = await showDialog<bool>(
+                      context: context,
+                      builder: (context) => AlertDialog(
+                        title: const Text('Confirm Withdrawal'),
+                        content: const Text(
+                            'Are you sure you want to withdraw your application?'),
+                        actions: [
+                          TextButton(
+                            onPressed: () =>context.pop(false),
+                            child: const Text('Cancel'),
+                          ),
+                          TextButton(
+                            onPressed: () => context.pop(true),
+                            child: const Text('Withdraw'),
+                          ),
+                        ],
+                      ),
+                    );
+                    if (!context.mounted ||confirmed == true) return;                  
+                    await ref
+                      .read(withdrawProvider.notifier)
+                      .withdraw(application.animalId);
+                    
+                  },
+                  child: const Text('Withdraw'),
+                ),
                 title: Text(application.animalName),
                 subtitle: Text(
                   '${application.need == Need.adoption ? 'Adopt' : 'Foster'}'
