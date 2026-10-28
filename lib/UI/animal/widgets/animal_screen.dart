@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:go_router/go_router.dart';
 
 import '../../../domain/models/animal.dart';
 import '../../animals/view_models/animals_view_model.dart';
@@ -8,32 +9,24 @@ import '../view_models/animal_view_model.dart';
 class AnimalScreen extends ConsumerWidget {
   const AnimalScreen({super.key, required this.animalId});
 
-  final String animalId;  
+  final String animalId;
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final animals = ref.watch(animalsProvider);
 
     return Scaffold(
-      appBar: AppBar(
-        title: const Text('Animal details'),
-      ),
+      appBar: AppBar(title: const Text('Animal details')),
       body: animals.when(
-        loading: () => const Center(
-          child: CircularProgressIndicator(),
-        ),
-        error: (error, stackTrace) => Center(
-          child: Text('Error: $error'),
-        ),
+        loading: () => const Center(child: CircularProgressIndicator()),
+        error: (error, stackTrace) => Center(child: Text('Error: $error')),
         data: (animals) {
           final animal = animals
               .where((animal) => animal.id == animalId)
               .firstOrNull;
 
           if (animal == null) {
-            return const Center(
-              child: Text('Animal not found'),
-            );
+            return const Center(child: Text('Animal not found'));
           }
 
           return SingleChildScrollView(
@@ -61,6 +54,15 @@ class AnimalScreen extends ConsumerWidget {
                   ),
                 ] else
                   Text('Adoption fee: ${feeText(animal)}'),
+                const SizedBox(height: 16),
+                ElevatedButton(
+                  onPressed: () => context.go('/animals/${animal.id}/apply'),
+                  child: Text(
+                    animal.need == Need.foster
+                        ? 'Apply to foster'
+                        : 'Apply to adopt',
+                  ),
+                ),
               ],
             ),
           );
