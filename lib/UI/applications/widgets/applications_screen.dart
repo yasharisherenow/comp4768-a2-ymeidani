@@ -11,9 +11,20 @@ class ApplicationsScreen extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final applications = ref.watch(applicationsProvider);
-
+    final withdrawal = ref.watch(withdrawProvider);
     return Scaffold(
       appBar: AppBar(title: const Text('My Applications')),
+      bottomNavigationBar: withdrawal.when(
+        loading: () => const Padding(
+          padding: EdgeInsets.all(16),
+          child: Center(heightFactor: 1, child: CircularProgressIndicator()),
+        ),
+        error: (error, stackTrace) => Padding(
+          padding: const EdgeInsets.all(16),
+          child: Text('Withdrawal failed: $error'),
+        ),
+        data: (_) => const SizedBox.shrink(),
+      ),
       body: applications.when(
         loading: () => const Center(child: CircularProgressIndicator()),
         error: (error, stackTrace) => Center(child: Text('Error: $error')),
@@ -34,10 +45,11 @@ class ApplicationsScreen extends ConsumerWidget {
                       builder: (context) => AlertDialog(
                         title: const Text('Confirm Withdrawal'),
                         content: const Text(
-                            'Are you sure you want to withdraw your application?'),
+                          'Are you sure you want to withdraw your application?',
+                        ),
                         actions: [
                           TextButton(
-                            onPressed: () =>context.pop(false),
+                            onPressed: () => context.pop(false),
                             child: const Text('Cancel'),
                           ),
                           TextButton(
@@ -47,11 +59,10 @@ class ApplicationsScreen extends ConsumerWidget {
                         ],
                       ),
                     );
-                    if (!context.mounted ||confirmed == true) return;                  
+                    if (!context.mounted || confirmed != true) return;
                     await ref
-                      .read(withdrawProvider.notifier)
-                      .withdraw(application.animalId);
-                    
+                        .read(withdrawProvider.notifier)
+                        .withdraw(application.animalId);
                   },
                   child: const Text('Withdraw'),
                 ),
