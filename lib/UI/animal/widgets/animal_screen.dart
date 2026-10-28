@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
-
+import '../../applications/view_models/applications_view_model.dart';
 import '../../../domain/models/animal.dart';
 import '../../animals/view_models/animals_view_model.dart';
 import '../view_models/animal_view_model.dart';
@@ -14,7 +14,7 @@ class AnimalScreen extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final animals = ref.watch(animalsProvider);
-
+    final applications = ref.watch(applicationsProvider);
     return Scaffold(
       appBar: AppBar(title: const Text('Animal details')),
       body: animals.when(
@@ -55,13 +55,41 @@ class AnimalScreen extends ConsumerWidget {
                 ] else
                   Text('Adoption fee: ${feeText(animal)}'),
                 const SizedBox(height: 16),
-                ElevatedButton(
-                  onPressed: () => context.go('/animals/${animal.id}/apply'),
-                  child: Text(
-                    animal.need == Need.foster
-                        ? 'Apply to foster'
-                        : 'Apply to adopt',
-                  ),
+                applications.when(
+                  loading: () =>
+                      const Center(child: CircularProgressIndicator()),
+                  error: (error, stackTrace) =>
+                      Text('Error: $error'),
+                  data: (applications) {
+                    final pending = applications.any(
+                      (application) =>
+                          application.animalId == animal.id,
+                    );
+
+                    if (pending) {
+                      return Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          const Text('Application pending'),
+                          TextButton(
+                            onPressed: () =>
+                                context.go('/animals/applications'),
+                            child: const Text('See my applications'),
+                          ),
+                        ],
+                      );
+                    }
+
+                    return ElevatedButton(
+                      onPressed: () =>
+                          context.go('/animals/${animal.id}/apply'),
+                      child: Text(
+                        animal.need == Need.foster
+                            ? 'Apply to foster'
+                            : 'Apply to adopt',
+                      ),
+                    );
+                  },
                 ),
               ],
             ),

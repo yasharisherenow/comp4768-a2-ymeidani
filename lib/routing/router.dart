@@ -5,6 +5,8 @@ import '../UI/animal/widgets/animal_screen.dart';
 import '../UI/core/error_screen.dart';
 import '../UI/apply/widgets/apply_screen.dart';
 import '../UI/apply/widgets/visit_times_screen.dart';
+import '../UI/applications/widgets/applications_screen.dart';
+
 final router = GoRouter(
   initialLocation: '/animals',
   errorBuilder: (context, state) => ErrorScreen(address: state.uri.toString()),
@@ -20,6 +22,10 @@ final router = GoRouter(
         need: state.uri.queryParameters['need'],
       ),
       routes: [
+        GoRoute(
+          path: 'applications',
+          builder: (context, state) => const ApplicationsScreen(),
+        ),
         GoRoute(
           path: ':animalId',
           builder: (context, state) =>

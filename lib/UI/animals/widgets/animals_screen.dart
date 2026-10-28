@@ -33,7 +33,16 @@ class AnimalsScreen extends ConsumerWidget {
     final animals = ref.watch(animalsProvider);
 
     return Scaffold(
-      appBar: AppBar(title: const Text('Animals')),
+      appBar: AppBar(
+        title: const Text('Animals'),
+        actions: [
+          IconButton(
+            tooltip: 'My Applications',
+            icon: const Icon(Icons.assignment_outlined),
+            onPressed: () => context.go('/animals/applications'),
+          ),
+        ],
+      ),
       body: animals.when(
         data: (animals) {
           final filteredAnimals = filterAnimals(animals, species, need);
