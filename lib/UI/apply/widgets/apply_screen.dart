@@ -1,10 +1,12 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
+
 import '../../../domain/models/animal.dart';
 import '../../animal/view_models/animal_view_model.dart';
 import '../../animals/view_models/animals_view_model.dart';
 import '../view_models/apply_view_model.dart';
+import '../../../domain/models/application.dart';
 
 class ApplyScreen extends ConsumerStatefulWidget {
   const ApplyScreen({super.key, required this.animalId});
@@ -22,7 +24,7 @@ class _ApplyScreenState extends ConsumerState<ApplyScreen> {
   final _reasonController = TextEditingController();
   final _ageController = TextEditingController();
   String? _visitTime;
-
+  bool _showVisitTimeError = false;
   @override
   void dispose() {
     _nameController.dispose();
@@ -36,7 +38,7 @@ class _ApplyScreenState extends ConsumerState<ApplyScreen> {
   @override
   Widget build(BuildContext context) {
     final animals = ref.watch(animalsProvider);
-
+    final sendState = ref.watch(applyProvider);
     return Scaffold(
       appBar: AppBar(title: const Text('Apply')),
       body: animals.when(
@@ -98,17 +100,72 @@ class _ApplyScreenState extends ConsumerState<ApplyScreen> {
                     ),
                   const SizedBox(height: 24),
                   ElevatedButton(
-                     onPressed: () async {
-                       final time = await context.push<String>('/visit-times');
-                       if (!mounted || time == null) return;
-                         setState(() { _visitTime = time; }); },
-  child: const Text('Choose a visit time'),
-),
-if (_visitTime != null) Text(_visitTime!),
-const SizedBox(height: 16),
-                  ElevatedButton(
-                    onPressed: () => _formKey.currentState!.validate(),
-                    child: const Text('Check details'),
+                    onPressed: () async {
+                      final time = await context.push<String>('/visit-times');
+                      if (!mounted || time == null) return;
+                      setState(() {
+                        _visitTime = time;
+                        _showVisitTimeError = false;
+                      });
+                    },
+                    child: const Text('Choose a visit time'),
+                  ),
+                  if (_visitTime != null) Text(_visitTime!),
+                  const SizedBox(height: 16),
+                  if (_showVisitTimeError)
+                    Text(
+                      'Choose a visit time',
+                      style: TextStyle(
+                        color: Theme.of(context).colorScheme.error,
+                      ),
+                    ),
+                  sendState.when(
+                    loading: () => const CircularProgressIndicator(),
+                    error: (error, stackTrace) => Text(
+                      'Error: $error',
+                      style: TextStyle(
+                        color: Theme.of(context).colorScheme.error,
+                      ),
+                    ),
+                    data: (sent) {
+                      if (sent) {
+                        return Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Text('Application sent for ${animal.name}'),
+                            TextButton(
+                              onPressed: () =>
+                                  context.go('/animals/applications'),
+                              child: const Text('See my applications'),
+                            ),
+                          ],
+                        );
+                      }
+
+                      return ElevatedButton(
+                        onPressed: () {
+                          final valid = _formKey.currentState!.validate();
+                          setState(() {
+                            _showVisitTimeError = _visitTime == null;
+                          });
+                          if (!valid || _visitTime == null) return;
+
+                          final application = Application(
+                            animalId: animal.id,
+                            animalName: animal.name,
+                            need: animal.need,
+                            fullName: _nameController.text.trim(),
+                            phone: _phoneController.text.trim(),
+                            visitTime: _visitTime!,
+                            reason: fostering
+                                ? null
+                                : _reasonController.text.trim(),
+                          );
+                          ref.read(applyProvider.notifier).send(application);
+                        },
+                        child: const Text('Send application'),
+                      );
+                    },
                   ),
                 ],
               ),
